@@ -8,10 +8,12 @@ using namespace std;
 
 vector<vector<long double>> transpose(vector<vector<long double>> x){
     vector<vector<long double>> ans;
-    for (int i = 0; i < x.size(); i++){
-        for (int j = 0; j < x[i].size(); j++){
-            ans[j][i] = x[i][j];
+    for (int i = 0; i < x[0].size(); i++){
+        vector<long double> temp;
+        for (int j = 0; j < x.size(); j++){
+            temp.push_back(x[j][i]);
         }
+        ans.push_back(temp);
     }
     return ans;
 }
@@ -23,15 +25,17 @@ long double det(vector<vector<long double>> x){
         return x[0][0];
     }
     for (int i = 0; i < n; i++){
-        vector<vector<long double>> temp;
+        vector<vector<long double>> temp1;
         for (int j = 1; j < n; j++){
+            vector<long double> temp2;
             for (int k = 0; k < n; k++){
                 if (k != i){
-                    temp[j - 1].push_back(x[j][k]);
+                    temp2.push_back(x[j][k]);
                 }
             }
+            temp1.push_back(temp2);
         }
-        ans += x[0][i] * pow(-1, i) * det(temp);
+        ans += x[0][i] * pow(-1, i) * det(temp1);
     }
     return ans;
 }
@@ -40,27 +44,25 @@ vector<vector<long double>> algebraic_additions(vector<vector<long double>> x){
     vector<vector<long double>> ans;
     int n = x.size();
     for (int i = 0; i < n; i++){
+        vector<long double> temp1;
         for (int j = 0; j < n; j++){
             vector<vector<long double>> minor;
-            bool flag = true;
             for (int k = 0; k < n; k++){
                 if (k == i){
-                    flag = false;
                     continue;
                 }
+                vector<long double> temp2;
                 for (int l = 0; l < n; l++){
                     if (l == j){
                         continue;
                     }
-                    if (flag){
-                        minor[k].push_back(x[k][l]);
-                    } else {
-                        minor[k - 1].push_back(x[k][l]);
-                    }
+                    temp2.push_back(x[k][l]);
                 }
+                minor.push_back(temp2);
             }
-            ans[i].push_back(pow(-1, i + j) * det(minor));
+            temp1.push_back(pow(-1, i + j) * det(minor));
         }
+        ans.push_back(temp1);
     }
     return ans;
 }
@@ -88,13 +90,15 @@ vector<vector<long double>> dot(vector<vector<long double>> x, vector<vector<lon
     y = transpose(y);
     int l = y.size();
     for (int k = 0; k < l; k++){
+        vector<long double> temp;
         for (int i = 0; i < n; i++){
             long double s = 0;
             for (int j = 0; j < m; j++){
                 s += x[i][j] * y[k][j];
             }
-            ans[i].push_back(s);
+            temp.push_back(s);
         }
+        ans.push_back(temp);
     }
     return ans;
 }
@@ -111,49 +115,37 @@ long double mult(vector<vector<long double>> x, vector<vector<long double>> y){
     return ans;
 }
 
-long double method(vector<vector<long double>> x, vector<vector<long double>> matrix, long double e){
-    vector<vector<long double>> x_new = dot(matrix, x);
-    vector<long double> line = transpose(x_new)[0];
-    int n = line.size();
-    cout << "x1:        [";
-    for (int i = 0; i < n; i++){
-        cout << line[i];
-        if (i != n - 1){
+void print_vector(vector<long double> arr){
+    int n = arr.size();
+    cout << "[";
+    for (int j = 0; j < n; j++){
+        cout << arr[j];
+        if (j != n - 1){
             cout << ", ";
         }
     }
     cout << "]" << endl;
+}
+
+long double method(vector<vector<long double>> x, vector<vector<long double>> matrix, long double e){
+    vector<vector<long double>> x_new = transpose(dot(matrix, x));
+    cout << "x1:        ";
+    print_vector(x_new[0]);
     long double lmbd = mult(x, x_new) / mult(x, x);
     cout << "lambda 1 = " << lmbd << endl;
     x = x_new;
-    x_new = dot(matrix, x);
-    line = transpose(x_new)[0];
-    n = line.size();
-    cout << "x2:        [";
-    for (int i = 0; i < n; i++){
-        cout << line[i];
-        if (i != n - 1){
-            cout << ", ";
-        }
-    }
-    cout << "]" << endl;
+    x_new = transpose(dot(matrix, x));
+    cout << "x2:        ";
+    print_vector(x_new[0]);
     long double lmbd_new = mult(x, x_new) / mult(x, x);
     cout << "lambda 2 = " << lmbd_new << endl;
     int i = 3;
     while (abs(lmbd - lmbd_new) > e){
         x = x_new;
         lmbd = lmbd_new;
-        x_new = dot(matrix, x);
-        line = transpose(x_new)[0];
-        n = line.size();
-        cout << "x" << i << ":        [";
-        for (int j = 0; j < n; j++){
-            cout << line[j];
-            if (j != n - 1){
-                cout << ", ";
-            }
-        }
-        cout << "]" << endl;
+        x_new = transpose(dot(matrix, x));
+        cout << "x" << i << ":        ";
+        print_vector(x_new[0]);
         lmbd_new = mult(x, x_new) / mult(x, x);
         cout << "lambda " << i << " = " << lmbd_new << endl;
         i += 1;
@@ -179,9 +171,13 @@ int main(int argc, char* argv[]){
     }
     matrix_file >> n;
     for (unsigned long i = 0; i < n; i++){
-        for(unsigned long j = 0; j < n; j++){
-            matrix_file >> matrix[i][j];
+        vector<long double> temp;
+        for (int j = 0; j < n; j++){
+            long double temp_value;
+            matrix_file >> temp_value;
+            temp.push_back(temp_value);
         }
+        matrix.push_back(temp);
     }
     matrix_file.close();
 
@@ -191,43 +187,35 @@ int main(int argc, char* argv[]){
         return 2;
     }
     config_file >> e;
-    unsigned long i = 0;
     while (!config_file.eof()){
+        vector<long double> temp;
         for (unsigned long j = 0; j < n; j++){
-            config_file >> x0s[i][j];
+            long double temp_value;
+            config_file >> temp_value;
+            temp.push_back(temp_value);
         }
-        i++;
+        x0s.push_back(temp);
     }
     config_file.close();
 
     vector<vector<long double>> inv_matrix = inverse(matrix);
     cout << "Матрица:" << endl;
-    for (unsigned long i = 0; i < n; i++){
-        vector<long double> line = matrix[i];
-        n = line.size();
-        cout << "[";
-        for (int j = 0; j < n; j++){
-            cout << line[j];
-            if (j != n - 1){
-                cout << ", ";
-            }
-        }
-        cout << "]" << endl;
+    for (int i = 0; i < n; i++){
+        print_vector(matrix[i]);
     }
     cout << "Обратная матрица:" << endl;
     for (int i = 0; i < n; i++){
-        vector<long double> line = inv_matrix[i];
-        n = line.size();
-        cout << "[";
-        for (int j = 0; j < n; j++){
-            cout << line[j];
-            if (j != n - 1){
-                cout << ", ";
-            }
-        }
-        cout << "]" << endl;
+        print_vector(inv_matrix[i]);
     }
-
+    for (int i = 0; i < x0s.size(); i++){
+        vector<vector<long double>> temp;
+        temp.push_back(x0s[i]);
+        vector<vector<long double>> x0 = transpose(temp);
+        cout << "Прямой ход" << endl;
+        cout << "Ответ: " << method(x0, matrix, e) << endl;
+        cout << "Обратный ход" << endl;
+        cout << "Ответ: " << 1 / method(x0, inv_matrix, e) << endl;
+    }
 
     return 0;
 }
