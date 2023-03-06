@@ -72,7 +72,7 @@ vector<vector<long double>> inverse(vector<vector<long double>> x){
     long double d = det(x);
     if (d == 0){
         cout << "The inverse matrix does not exist!" << endl;
-        return {};
+        throw (4);
     }
     vector<vector<long double>> ans = transpose(algebraic_additions(x));
     for (int i = 0; i < n; i++){
@@ -106,7 +106,7 @@ vector<vector<long double>> dot(vector<vector<long double>> x, vector<vector<lon
 long double mult(vector<vector<long double>> x, vector<vector<long double>> y){
     long double ans = 0;
     int n = x.size();
-    int m = y.size();
+    int m = x[0].size();
     for (int i = 0; i < n; i++){
         for (int j = 0; j < m; j++){
             ans += x[i][j] * y[i][j];
@@ -128,24 +128,27 @@ void print_vector(vector<long double> arr){
 }
 
 long double method(vector<vector<long double>> x, vector<vector<long double>> matrix, long double e){
-    vector<vector<long double>> x_new = transpose(dot(matrix, x));
+    vector<vector<long double>> x_new = dot(matrix, x);
     cout << "x1:        ";
     print_vector(x_new[0]);
+    x_new = transpose(x_new);
     long double lmbd = mult(x, x_new) / mult(x, x);
     cout << "lambda 1 = " << lmbd << endl;
     x = x_new;
-    x_new = transpose(dot(matrix, x));
+    x_new = dot(matrix, x);
     cout << "x2:        ";
     print_vector(x_new[0]);
+    x_new = transpose(x_new);
     long double lmbd_new = mult(x, x_new) / mult(x, x);
     cout << "lambda 2 = " << lmbd_new << endl;
     int i = 3;
     while (abs(lmbd - lmbd_new) > e){
         x = x_new;
         lmbd = lmbd_new;
-        x_new = transpose(dot(matrix, x));
+        x_new = dot(matrix, x);
         cout << "x" << i << ":        ";
         print_vector(x_new[0]);
+        x_new = transpose(x_new);
         lmbd_new = mult(x, x_new) / mult(x, x);
         cout << "lambda " << i << " = " << lmbd_new << endl;
         i += 1;
@@ -198,24 +201,32 @@ int main(int argc, char* argv[]){
     }
     config_file.close();
 
-    vector<vector<long double>> inv_matrix = inverse(matrix);
-    cout << "Матрица:" << endl;
-    for (int i = 0; i < n; i++){
-        print_vector(matrix[i]);
+    try {
+        vector<vector<long double>> inv_matrix = inverse(matrix);
+        cout << "Матрица:" << endl;
+        for (int i = 0; i < n; i++){
+            print_vector(matrix[i]);
+        }
+        cout << "Обратная матрица:" << endl;
+        for (int i = 0; i < n; i++){
+            print_vector(inv_matrix[i]);
+        }
+        for (int i = 0; i < x0s.size(); i++){
+            cout << "Начальный вектор: ";
+            print_vector(x0s[i]);
+            vector<vector<long double>> temp;
+            temp.push_back(x0s[i]);
+            vector<vector<long double>> x0 = transpose(temp);
+            cout << "Прямой ход" << endl;
+            long double ans = method(x0, matrix, e);
+            cout << "Ответ: " << ans << endl;
+            cout << "Обратный ход" << endl;
+            ans = 1 / method(x0, inv_matrix, e);
+            cout << "Ответ: " << ans << endl;
+        }
+    } catch (int err) {
+        cout << "Something went wrong!" << endl;
+        return 3;
     }
-    cout << "Обратная матрица:" << endl;
-    for (int i = 0; i < n; i++){
-        print_vector(inv_matrix[i]);
-    }
-    for (int i = 0; i < x0s.size(); i++){
-        vector<vector<long double>> temp;
-        temp.push_back(x0s[i]);
-        vector<vector<long double>> x0 = transpose(temp);
-        cout << "Прямой ход" << endl;
-        cout << "Ответ: " << method(x0, matrix, e) << endl;
-        cout << "Обратный ход" << endl;
-        cout << "Ответ: " << 1 / method(x0, inv_matrix, e) << endl;
-    }
-
     return 0;
 }

@@ -1,5 +1,5 @@
 {
-  "error": 0.01,
+  "error": 0.001,
   "initial_vectors": [
     [1, 0, 0],
     [1, 1, 1],

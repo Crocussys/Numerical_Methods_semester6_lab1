@@ -77,8 +77,8 @@ def inverse(x: list):
             raise ValueError
     d = det(x)
     if d == 0:
-        print("Обратной матрицы не существует!")
-        return []
+        print("The inverse matrix does not exist!")
+        raise ValueError
     ans = transpose(algebraic_additions(x))
     for i in range(n):
         for j in range(n):
@@ -198,7 +198,7 @@ def main(argv: list):
             print("Обратный ход")
             print(f"Ответ: {1 / method(x0, inv_matrix)}")
     except ValueError:
-        print("Что-то пошло не так")
+        print("Something went wrong!")
         return 3
     return 0
 
